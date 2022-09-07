@@ -1,0 +1,105 @@
+#include <ESP8266_Lib.h>
+#include <BlynkSimpleShieldEsp8266.h>
+#include <SoftwareSerial.h>
+#include <SoftwareSerial.h>
+#include "EmonLib.h"
+#define BLYNK_PRINT Serial
+#define ESP8266_BAUD 9600
+#define pin_RX 2
+#define pin_TX 3
+#define token "********"
+#define wifi_name "********"
+#define wifi_password "********"
+#define voltage_sensor A0
+
+
+
+EnergyMonitor emon1;
+SoftwareSerial EspSerial(pin_RX, pin_TX); // RX, TX
+ESP8266 wifi(&EspSerial);
+BlynkTimer timer;
+
+char auth[] = token;
+char ssid[] = wifi_name;
+char pass[] = wifi_password;
+static double Irms;
+static int el = 2;//connection_message
+static int  el_value[2];//electrical value [0]- voltage, [1]-current, [2]-watt
+static int pin__volatge_relay = 8;
+float capteur;
+float KW;
+float vout = 0.0;
+float vin = 0.0;
+float R1 = 100000.0;
+float R2 = 10000.0;
+float amp = 0;
+
+void setup()
+{
+  Serial.begin(ESP8266_BAUD);
+  EspSerial.begin(ESP8266_BAUD);
+  Blynk.begin(auth, wifi, ssid, pass);
+  timer.setInterval(1000L, myTimerEvent);
+  emon1.current(1, 111);
+  pinMode(pin__volatge_relay, OUTPUT);
+  pinMode(voltage_sensor, INPUT);
+}
+
+
+
+
+void loop()
+{
+
+
+  Blynk.run();
+  timer.run(); // Initiates BlynkTimer
+
+  connected_to_blynk(el);//notify blynk connected
+
+  Measure_electric(pin__volatge_relay, el_value );
+
+  Serial.print(el_value[0]);//current
+  Serial.print(" mA ");
+
+  Serial.print(el_value[1]);//voltage
+  Serial.print(" V ");
+
+  Serial.print(el_value[2]);//kiloWatt
+  Serial.println(" KW");
+
+  Blynk.virtualWrite(V5, el_value[0]);//blynk app data
+  Blynk.virtualWrite(V6, el_value[1]);//blynk app data
+  Blynk.virtualWrite(V7, el_value[2]);//blynk app data
+
+  delay(5000);
+
+}
+void myTimerEvent()
+{
+  Blynk.virtualWrite(V5, millis() / 1000);
+}
+void connected_to_blynk(int el)
+{
+  if (el == 2)
+  {
+    Blynk.notify("Light in my room is connected");
+  }
+  el = 1;
+}
+void Measure_electric(int pin__volatge_relay, int el_value[] )
+{
+  digitalWrite(pin__volatge_relay, 1);//turn relay on
+  Irms = emon1.calcIrms(1480);  // Calculate Irms only
+  capteur = analogRead(voltage_sensor);//voltage sensor
+  amp = Irms * 1000;
+  vout = (capteur * 5) / 1024.0;
+  vin = vout / (R2 / (R1 + R2));//voltage divider
+  KW = vin * amp;
+  digitalWrite(pin__volatge_relay, 0);
+  el_value[0] = amp;
+  el_value[1] = vin;
+  el_value[2] = KW;
+}
+
+
