@@ -3,6 +3,7 @@
 #include <SoftwareSerial.h>
 #include <SoftwareSerial.h>
 #include "EmonLib.h"
+
 #define BLYNK_PRINT Serial
 #define ESP8266_BAUD 9600
 #define pin_RX 2
@@ -14,27 +15,25 @@
 #define Termistor A3//?
 #define VCC 5    //Supply voltage-Termistor
 #define R 10000  //R=10KΩ-Termistor
- #define RT0 10000   // Ω -Termistor
+#define RT0 10000   // Ω -Termistor
 #define B 3977      // K-Termistor
 #define pin_fan 7
-
-
 
 EnergyMonitor emon1;
 SoftwareSerial EspSerial(pin_RX, pin_TX); // RX, TX
 ESP8266 wifi(&EspSerial);
 BlynkTimer timer;
 
-char auth[] = token;
-char ssid[] = wifi_name;
-char pass[] = wifi_password;
 static double Irms;
 static int el = 2;//connection_message
 static int  el_value[2];//electrical value [0]- voltage, [1]-current, [2]-watt
 static int pin__volatge_relay = 8;
-static float T0=298.15 ;//Temperature T0 from datasheet, conversion from Celsius to kelvin 25 + 273.15 -Termistor
+static float T0 = 298.15 ; //Temperature T0 from datasheet, conversion from Celsius to kelvin 25 + 273.15 -Termistor
 static float RT, VR, ln, TX, VRT;
-static bool booli=false;
+static bool booli = false;
+char auth[] = token;
+char ssid[] = wifi_name;
+char pass[] = wifi_password;
 float capteur;
 float KW;
 float vout = 0.0;
@@ -42,7 +41,6 @@ float vin = 0.0;
 float R1 = 100000.0;
 float R2 = 10000.0;
 float amp = 0;
-
 
 void setup()
 {
@@ -54,18 +52,13 @@ void setup()
   pinMode(pin__volatge_relay, OUTPUT);
   pinMode(voltage_sensor, INPUT);
   pinMode(Termistor, INPUT);
- 
 }
-
-
-
 
 void loop()
 {
-  fan_test();
-booli=Thermi();
-fani(booli);
-
+  fan_test();//test fan
+  booli = Thermi();// check overheating at the box
+  fani(booli);
 
   Blynk.run();//Wifi connection
   timer.run(); // Initiates BlynkTimer
@@ -90,10 +83,12 @@ fani(booli);
   delay(5000);
 
 }
+
 void myTimerEvent()
 {
   Blynk.virtualWrite(V5, millis() / 1000);
 }
+
 void connected_to_blynk(int el)
 {
   if (el == 2)
@@ -102,6 +97,7 @@ void connected_to_blynk(int el)
   }
   el = 1;
 }
+
 void Measure_electric(int pin__volatge_relay, int el_value[] )
 {
   digitalWrite(pin__volatge_relay, 1);//turn relay on
@@ -126,26 +122,27 @@ bool Thermi()
   RT = VRT / (VR / R);               //Resistance of RT
   ln = log(RT / RT0);
   TX = (1 / ((ln / B) + (1 / T0))); //Temperature from thermistor
-  TX = TX - 273.15; 
+  TX = TX - 273.15;
   Serial.print(TX);
-Serial.println("Temperature:");               
-if (TX>27)
-return true;
-else return false; 
+  Serial.println("Temperature:");
+  if (TX > 27)
+    return true;
+  else return false;
 }
+
 void fan_test()
 {
-  digitalWrite(pin_fan,1);
+  digitalWrite(pin_fan, 1);
   delay(2000);
-  digitalWrite(pin_fan,0);
-  }
+  digitalWrite(pin_fan, 0);
+}
 
 void fani(bool booli)
 {
-  if (booli==true)
-digitalWrite(pin_fan,1);
-else
-digitalWrite(pin_fan,0);
+  if (booli == true)
+    digitalWrite(pin_fan, 1);
+  else
+    digitalWrite(pin_fan, 0);
 }
 
 
