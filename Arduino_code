@@ -110,7 +110,7 @@ void Measure_electric(int pin__volatge_relay, int el_value[] )
   digitalWrite(pin__volatge_relay, 0);
   el_value[0] = amp;
   el_value[1] = vin;
-  el_value[2] = KW;
+  el_value[2] = KW; 
 }
 
 bool Thermi()
