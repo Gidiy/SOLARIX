@@ -6,12 +6,13 @@
 #include <SoftwareSerial.h>
 #include "EmonLib.h"
 
+
 #define ESP8266_BAUD 9600
 #define pin_RX 2
 #define pin_TX 3
-#define token "******"
-#define wifi_name "*****"
-#define wifi_password "*****"
+#define token "zqYjII0Eq7wkMUPozOf_faWngATcvBdR"
+#define wifi_name "YOSEF"
+#define wifi_password "0544860517"
 #define voltage_sensor A0
 #define Termistor A3
 #define pin_fan A5
@@ -25,10 +26,10 @@ static double Irms;
 static int el = 2;//connection_message
 static float  el_value[3];//electrical value [0]- voltage, [1]-current, [2]-watt
 static int pin__volatge_relay = 8;//was A1
-static int R=10000;  //R=10KΩ-Termistor
-static int VCC=5;    //Supply voltage-Termistor
-static float RT0=10000; // Ω -Termistor
-static int B=3977;      // K-Termistor
+static int R = 10000; //R=10KΩ-Termistor
+static int VCC = 5;  //Supply voltage-Termistor
+static float RT0 = 10000; // Ω -Termistor
+static int B = 3977;    // K-Termistor
 static float T0 = 298.15 ; //Temperature T0 from datasheet, conversion from Celsius to kelvin 25 + 273.15 -Termistor
 static float RT, VR, ln, TX, VRT, temp;
 static bool booli = false;
@@ -43,25 +44,26 @@ static float R1 = 100000.0;
 static float R2 = 10000.0;
 static float amp = 0;
 
+
 void setup()
 {
   Serial.begin(ESP8266_BAUD);
+
   EspSerial.begin(ESP8266_BAUD);
- // Blynk.begin(auth, wifi, ssid, pass);
-  Blynk.connectWiFi(ssid, pass);
-   while(Blynk.connect() != true)
-{
- Blynk.connectWiFi(ssid, pass);
-}
+  Blynk.begin(auth, wifi, ssid, pass);
+
+
+
+
   timer.setInterval(1000L, myTimerEvent);
   emon1.current(1, 111);
   pinMode(pin__volatge_relay, OUTPUT);
   pinMode(voltage_sensor, INPUT);
   pinMode(pin_fan, OUTPUT);
   pinMode(Termistor, INPUT);
-
   Blynk.run();//Wifi connection
   timer.run(); // Initiates BlynkTimer
+
   connected_to_blynk(el);//Notify blynk connected
 
   fan_test();
@@ -70,31 +72,31 @@ void setup()
 
 void loop()
 {
- Measure_electric(pin__volatge_relay, el_value );//Measure electrical sensor-At use(not charge)
+  Measure_electric(pin__volatge_relay, el_value );//Measure electrical sensor-At use(not charge)
   Serial.print(el_value[0]);//current
   Serial.print(" mA ");
-Blynk.virtualWrite(V5, el_value[0]);//blynk app data
+  Blynk.virtualWrite(V5, el_value[0]);//blynk app data
   Serial.print(el_value[1]);//voltage
   Serial.print(" V ");
   Blynk.virtualWrite(V6, el_value[1]);//blynk app data
   Serial.print(el_value[2]);//kiloWatt
   Serial.println(" KW");
-    Blynk.virtualWrite(V7, el_value[2]);//blynk app data
-delay(2000);
-//thermi_function
-VRT = analogRead(Termistor);              //Acquisition analog value of VRT
+  Blynk.virtualWrite(V7, el_value[2]);//blynk app data
+  delay(2000);
+  //thermi_function
+  VRT = analogRead(Termistor);              //Acquisition analog value of VRT
   VRT = (5.00 / 1023.00) * VRT;      //Conversion to voltage
- VR = VCC - VRT;
+  VR = VCC - VRT;
   RT = VRT / (VR / R);               //Resistance of RT
- ln = log(RT / RT0);
+  ln = log(RT / RT0);
   TX = (1 / ((ln / B) + (1 / T0))); //Temperature from thermistor
   TX = TX - 273.15;
-  temp=abs(TX);
-   Serial.print("Temperature:");
+  temp = abs(TX);
+  Serial.print("Temperature:");
   Serial.println(temp);
   //end thermi function
- Blynk.virtualWrite(V8, temp);//blynk app data
-   fani(temp);//cool down the board over 22c
+  Blynk.virtualWrite(V8, temp);//blynk app data
+  fani(temp);//cool down the board over 22c
   delay(2000);
 
 }
@@ -133,34 +135,26 @@ void fan_test()
 {
 
   analogWrite(pin_fan, 0);//wired upsidedown
+  Blynk.virtualWrite(V9, 255);
   delay(3000);
   analogWrite(pin_fan, 1024);
+  Blynk.virtualWrite(V9, 0);
   delay(1000);
   Serial.println("fan is ok!");
   Blynk.notify("fan is ok!");
 }
 
-/*
-float Thermi(int VCC, int R, int B, float T0, float RT0)// not working well
-{
-
-  VRT = analogRead(Termistor);              //Acquisition analog value of VRT
-  VRT = (5.00 / 1023.00) * VRT;      //Conversion to voltage
- VR = VCC - VRT;
-  RT = VRT / (VR / R);               //Resistance of RT
- ln = log(RT / RT0);
-  TX = (1 / ((ln / B) + (1 / T0))); //Temperature from thermistor
-  TX = TX - 273.15;
-  //Serial.print("Temperature:");
-  temp=abs(TX);
-  Serial.println(temp);
-    return temp;
-}*/
 
 void fani(float tempre)
 {
-   if (tempre > 22)
+  if (tempre > 22)
+  {
     analogWrite(pin_fan, 0);//fan pullup-turning on
+    Blynk.virtualWrite(V9, 255);
+  }
   else
+  {
     analogWrite(pin_fan, 1024);//turning off
+    Blynk.virtualWrite(V9, 0);
+  }
 }
