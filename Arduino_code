@@ -9,7 +9,7 @@
 #define ESP8266_BAUD 9600
 #define pin_RX 2
 #define pin_TX 3
-#define token "zqYjII0Eq7wkMUPozOf_faWngATcvBdR"
+#define token "******"
 #define wifi_name "*****"
 #define wifi_password "*****"
 #define voltage_sensor A0
@@ -47,7 +47,12 @@ void setup()
 {
   Serial.begin(ESP8266_BAUD);
   EspSerial.begin(ESP8266_BAUD);
-  Blynk.begin(auth, wifi, ssid, pass);
+ // Blynk.begin(auth, wifi, ssid, pass);
+  Blynk.connectWiFi(ssid, pass);
+   while(Blynk.connect() != true)
+{
+ Blynk.connectWiFi(ssid, pass);
+}
   timer.setInterval(1000L, myTimerEvent);
   emon1.current(1, 111);
   pinMode(pin__volatge_relay, OUTPUT);
