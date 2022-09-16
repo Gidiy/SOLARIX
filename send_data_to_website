@@ -1,0 +1,244 @@
+
+#include "SoftwareSerial.h"
+#include<stdio.h>
+#include <SPI.h>
+#include <WiFi.h>
+#include <SPI.h>
+#include <ESP8266HTTPClient.h>
+
+
+WiFiClient client;
+char ssid[] = "***";      //  your network SSID (name)
+char pass[] = "*****";   // your network password
+int keyIndex = 0;          
+String HOST = "127.0.0.1";
+String PORT = "5000";
+
+SoftwareSerial esp(6, 7);// RX, TX
+String data;
+int status = WL_IDLE_STATUS;
+String server = "127.0.0.1:5000"; // www.example.com
+String uri = "/";// our example is /esppost.php
+byte dat [5];
+bool connectStatus = false;
+const char kHostname[] = "127.0.0.1";
+// Path to download (this is the bit after the hostname in the URL
+// that you want to download
+const char kPath[] = "/";
+
+
+void setup() 
+{
+//pinMode (DHpin, OUTPUT);
+esp.begin(9600);
+Serial.begin(9600);
+
+}
+
+
+/*
+byte read_data ()
+{
+byte data;
+for (int i = 0; i < 8; i ++) {
+if (digitalRead (DHpin) == LOW) {
+while (digitalRead (DHpin) == LOW); // wait for 50us
+delayMicroseconds (30); // determine the duration of the high level to determine the data is '0 'or '1'
+if (digitalRead (DHpin) == HIGH)
+data |= (1 << (7-i)); // high front and low in the post
+while (digitalRead (DHpin) == HIGH);
+// data '1 ', wait for the next one receiver
+}
+} return data; 
+}
+void start_test () 
+{
+digitalWrite (DHpin, LOW); // bus down, send start signal
+delay (30); // delay greater than 18ms, so DHT11 start signal can be detected
+digitalWrite (DHpin, HIGH);
+delayMicroseconds (40); // Wait for DHT11 response
+pinMode (DHpin, INPUT);
+while (digitalRead (DHpin) == HIGH);
+delayMicroseconds (80);
+// DHT11 response, pulled the bus 80us
+if (digitalRead (DHpin) == LOW);
+delayMicroseconds (80);
+// DHT11 80us after the bus pulled to start sending data
+for (int i = 0; i < 4; i ++)
+// receive temperature and humidity data, the parity bit is not considered
+dat[i] = read_data ();
+pinMode (DHpin, OUTPUT);
+digitalWrite (DHpin, HIGH);
+// send data once after releasing the bus, wait for the host to open the next Start signal
+}*/
+
+void loop () 
+{
+
+  /*
+ while(connectStatus==false)//
+ {
+  connectStatus=connectWifi();
+ }
+ at_command( "AT+CWJAP?");
+ delay(10000);
+ if(esp.find("OK")) 
+{
+Serial.println("still Connected!");
+}
+else 
+{
+Serial.println("try again"); 
+connectStatus=false;
+while(connectStatus==false)
+ {
+  connectStatus=connectWifi();
+ }
+}*/
+//at_command( "AT+CIPCLOSE");//CLOSE CONNECTION
+//delay(4000);
+at_command( "AT");//Test AT startup
+delay(4000);
+at_command( "AT+RST");// Restart module
+delay(4000);
+at_command( "AT+CWMODE=3");// = AP mode (host)+Station mode (client)
+delay(4000);
+//at_command( "AT+CWJAP?");// connected?
+//delay(4000);
+at_command( "AT+CWLAP");// list of wifi around
+delay(4000);
+at_command( "AT+CWJAP=\"YOSEF\",\"0544860517\"");// Connect to AP
+delay(4000);
+at_command( "AT+CWJAP?");// is connected?
+delay(4000);
+at_command( "AT+CIPMUX=1");//1st
+delay(4000);
+at_command("AT+CIPSERVER=1,5000");//server at HTTP port 5000
+delay(4000);
+at_command( "AT+CIFSR");//Query the ESP8266 device's IP address. 
+delay(8000);
+//at_command("AT+CIPMUX=1");//Multy_TCP_connections
+//delay(4000);
+//at_command("AT+CIPSTART=\"TCP\",\""+ HOST +"\","+ PORT);///protocol,  remote IP  and remote port
+//delay(4000);
+//Serial.println("a"); 
+//at_command("AT+CIPSTART=4,\"UDP\",\""+ HOST +"\","+ PORT);///protocol,  remote IP  and remote port
+//delay(4000);
+///////
+
+  
+  //at_command("AT+HTTPINIT");
+at_command("");
+delay(4000);
+at_command("");
+delay(4000);
+
+
+
+
+/////
+    //String cmd1 = "GET /static/style.css HTTP/1.1";
+   // esp.println("AT+CIPSEND=4," + String(cmd1.length() + 4));
+    //delay(1000);
+
+    //esp.print(cmd1);
+    //delay(1000);
+    
+//at_command( "AT+CIPSEND=30");//Send data- length- max 2048 bytes
+//delay(4000);
+//Serial.println("b"); 
+
+//at_command("AT+CIPSERVER=1,5000");//server at HTTP port 5000
+//delay(4000);
+//Serial.println("c"); 
+at_command("AT+CIPSTATUS");//connection status
+delay(4000);
+//Serial.println("d");
+
+
+
+  /*
+//start_test ();
+// convert the bit data to string form
+//hum = String(dat[0]);
+//temp= String(dat[2]);
+data = "temperature=" + temp + "&humidity=" + hum;// data sent must be under this form //name1=value1&name2=value2.
+httppost();
+delay(1000);
+}
+void httppost () {
+esp.println("AT+CIPSTART=\"TCP\",\"" + server + "\",80");//start a TCP connection.
+if( esp.find("OK")) {
+Serial.println("TCP connection ready");
+} delay(1000);
+String postRequest =
+"POST " + uri + " HTTP/1.0\r\n" +
+"Host: " + server + "\r\n" +
+"Accept: *" + "/" + "*\r\n" +
+"Content-Length: " + data.length() + "\r\n" +
+"Content-Type: application/x-www-form-urlencoded\r\n" +
+"\r\n" + data;
+String sendCmd = "AT+CIPSEND=";//determine the number of caracters to be sent.
+esp.print(sendCmd);
+esp.println(postRequest.length() );
+delay(500);
+if(esp.find(">")) { Serial.println("Sending.."); esp.print(postRequest);
+if( esp.find("SEND OK")) { Serial.println("Packet sent");
+while (esp.available()) {
+String tmpResp = esp.readString();
+Serial.println(tmpResp);
+}
+// close the connection
+esp.println("AT+CIPCLOSE");
+}
+}*/}
+void at_command(String cmd)
+{
+
+esp.println(cmd);
+delay(4000);
+Serial.println(esp.readString());
+}
+
+
+bool connectWifi() 
+{
+at_command( "AT+CWJAP=\"YOSEF\",\"0544860517\"");//3rd
+delay(4000);;
+if(esp.find("OK")) 
+{
+Serial.println("Connected!");
+return true;
+}
+else 
+{
+Serial.println("Cannot connect to wifi"); 
+return false;
+}
+}
+void printWifiStatus() {
+
+  // print the SSID of the network you're attached to:
+
+  Serial.print("SSID: ");
+
+  Serial.println(WiFi.SSID());
+
+  // print your WiFi shield's IP address:
+
+  IPAddress ip = WiFi.localIP();
+
+  Serial.print("IP Address: ");
+
+  Serial.println(ip);
+
+  // print the received signal strength:
+
+  long rssi = WiFi.RSSI();
+
+  Serial.print("signal strength (RSSI):");
+
+  Serial.print(rssi);
+
+  Serial.println(" dBm");
+}
