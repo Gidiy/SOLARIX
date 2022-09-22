@@ -1,0 +1,34 @@
+from http.client import OK
+from urllib import request
+from flask import Flask, render_template,request
+from pymongo import MongoClient
+app = Flask(__name__)
+client = MongoClient("mongodb+srv://giladi:WKb6n68Ptzi2iYK@test1.21snkek.mongodb.net/test")
+app.db = client.first_database
+
+@app.route("/",methods=["GET","POST"])
+def hello_world1():
+   # if request.method == "POST":
+    #    entry = request.form.get("content")
+     #   entry1="lol"
+      #  app.db.my_new.insert({"com": entry,"useless": entry1 })
+        
+    entries_with_data = [
+        (
+            entry["com"],
+            entry["useless"]
+        )
+        for entry in app.db.my_new.find({})
+    ]
+    return render_template("code.html", entries=entries_with_data)
+    
+    @app.route("/test",methods=["GET","POST"])
+    def hello_world1():
+        if request.method == "GET":
+            testi = request.get('Temp')
+            print("wut?" + testi)
+        return 'OK'
+
+   
+   
+    
