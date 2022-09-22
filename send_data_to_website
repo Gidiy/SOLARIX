@@ -3,11 +3,13 @@
 #include<stdio.h>
 #include <SPI.h>
 #include <WiFi.h>
+#include <HttpClient.h>
+#include <Arduino_JSON.h>
 
 
 WiFiClient client;
 char ssid[] = "*****";      //  your network SSID (name)
-char pass[] = "*****";   // your network password
+char pass[] = "*******";   // your network password
 int keyIndex = 0;          
 String HOST = "127.0.0.1";
 String PORT = "5000";
@@ -72,7 +74,10 @@ digitalWrite (DHpin, HIGH);
 
 void loop () 
 {
+WiFiClient client;
+  HttpClient http(client);
 
+  Serial.println("b"); 
   /*
  while(connectStatus==false)//
  {
@@ -105,14 +110,14 @@ delay(4000);
 //delay(4000);
 at_command( "AT+CWLAP");// list of wifi around
 delay(4000);
-at_command( "AT+CWJAP=\"YOSEF\",\"0544860517\"");// Connect to AP
+at_command( "AT+CWJAP=\"YOSEF1\",\"0544860517\"");// Connect to AP
 delay(4000);
 at_command( "AT+CWJAP?");// is connected?
 delay(4000);
 at_command( "AT+CIPSTA?");// is connected?
 delay(4000);
 at_command( "AT+CIPMUX=1");//1st
-delay(4000);
+delay(2000);
 //at_command("AT+CIPSERVER=1,5000");//server at HTTP port 5000
 //delay(4000);
 //at_command( "AT+CIFSR");//Query the ESP8266 device's IP address. 
@@ -121,18 +126,20 @@ delay(4000);
 //delay(4000);
 //at_command("AT+CIPSTART=\"TCP\",\""+ HOST +"\","+ PORT);///protocol,  remote IP  and remote port
 //delay(4000);
-//Serial.println("a"); 
-at_command("AT+CIPSTART=4,\"UDP\",\""+ HOST +"\","+ PORT);///protocol,  remote IP  and remote port
-delay(4000);
+Serial.println("a"); 
+//t_command("AT+CIPSTART=4,\"UDP\",\""+ HOST +"\","+ PORT);///protocol,  remote IP  and remote port
+//delay(4000);
 ///////
 
-
-
-
-
-
+  http.get(NULL,"5000","http://192.168.1.34");
+delay(2000);
+Serial.println("b"); 
+delay(2000);
+Serial.println( http.get(NULL,"5000","http://192.168.1.34"));
+Serial.println("c");
+delay(2000); 
 /////
-    String cmd1 = "GET /asciilogo.txt HTTP/1.1\r\nHost: arduino.cc\r\nConnection: close\r\n\r\n";
+   // String cmd1 = "POST /asciilogo.txt HTTP/1.1\r\nHost: arduino.cc\r\nConnection: close\r\n\r\n";
    // esp.println("AT+CIPSEND=4," + String(cmd1.length() + 4));
     //delay(1000);
 
@@ -148,18 +155,18 @@ delay(4000);
 //Serial.println("c"); 
 //at_command("AT+CIPSTATUS");//connection status
 //delay(4000);
-Serial.println("d");
-at_command( "AT+CIPSEND=4,100");//Send data- length- max 2048 bytes
-delay(4000);
+//Serial.println("d");
+//at_command( "AT+CIPSEND=4,100");//Send data- length- max 2048 bytes
+//delay(4000);
 //Serial.println(esp.readString());
-if(esp.find(">"))
-{
-  Serial.println(esp.readString());
-at_command(cmd1);
-}
+//if(esp.find(">"))
+//{
+//  Serial.println(esp.readString());
 //at_command(cmd1);
-Serial.println("b"); 
-delay(4000);
+//}
+//at_command(cmd1);
+//Serial.println("b"); 
+//delay(4000);
 
   /*
 //start_test ();
